@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { toggleSidebar } from '../store/uiSlice';
-import { Menu, X, Scissors, Calendar, Home, User, Phone } from 'lucide-react';
+import { Menu, X, Scissors, Calendar, Home, User, Phone, BarChart3 } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { sidebarOpen } = useSelector((state: RootState) => state.ui);
@@ -17,6 +17,7 @@ const Navbar: React.FC = () => {
     { path: '/services', label: 'Services', icon: Scissors },
     { path: '/booking', label: 'Book Now', icon: Calendar },
     { path: '/appointments', label: 'My Appointments', icon: User },
+    { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
     { path: '/contact', label: 'Contact', icon: Phone },
   ];
 

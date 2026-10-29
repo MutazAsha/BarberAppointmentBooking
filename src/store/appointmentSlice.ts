@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Appointment } from '../types';
+import { api } from '../services/api';
 
 interface AppointmentState {
   appointments: Appointment[];
@@ -8,67 +9,94 @@ interface AppointmentState {
 }
 
 const initialState: AppointmentState = {
-  appointments: [
-    {
-      id: '1',
-      serviceId: '1',
-      serviceName: 'Classic Haircut',
-      barberId: '1',
-      barberName: 'James Wilson',
-      date: '2026-01-15',
-      time: '10:00',
-      duration: 30,
-      price: 25,
-      status: 'completed',
-      customerName: 'John Doe',
-      customerPhone: '+1234567890',
-      customerEmail: 'john@example.com',
-      createdAt: '2026-01-14T10:00:00Z',
-    },
-    {
-      id: '2',
-      serviceId: '4',
-      serviceName: 'Hair & Beard Combo',
-      barberId: '2',
-      barberName: 'Marcus Johnson',
-      date: '2026-01-20',
-      time: '14:30',
-      duration: 50,
-      price: 35,
-      status: 'confirmed',
-      customerName: 'John Doe',
-      customerPhone: '+1234567890',
-      customerEmail: 'john@example.com',
-      createdAt: '2026-01-18T10:00:00Z',
-    },
-  ],
+  appointments: [],
   loading: false,
   error: null,
 };
+
+// Async Thunks
+export const fetchAppointments = createAsyncThunk(
+  'appointments/fetchAll',
+  async () => {
+    return await api.getAppointments();
+  }
+);
+
+export const fetchAppointmentsByEmail = createAsyncThunk(
+  'appointments/fetchByEmail',
+  async (email: string) => {
+    return await api.getAppointmentsByEmail(email);
+  }
+);
+
+export const createAppointment = createAsyncThunk(
+  'appointments/create',
+  async (appointment: Omit<Appointment, 'id' | 'createdAt'>) => {
+    return await api.createAppointment(appointment);
+  }
+);
+
+export const cancelAppointmentAsync = createAsyncThunk(
+  'appointments/cancel',
+  async (id: string) => {
+    await api.cancelAppointment(id);
+    return id;
+  }
+);
 
 const appointmentSlice = createSlice({
   name: 'appointments',
   initialState,
   reducers: {
-    addAppointment: (state, action: PayloadAction<Appointment>) => {
-      state.appointments.push(action.payload);
+    clearError: (state) => {
+      state.error = null;
     },
-    cancelAppointment: (state, action: PayloadAction<string>) => {
-      const appointment = state.appointments.find((a) => a.id === action.payload);
-      if (appointment) {
-        appointment.status = 'cancelled';
-      }
-    },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch all
+      .addCase(fetchAppointments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAppointments.fulfilled, (state, action) => {
+        state.loading = false;
+        state.appointments = action.payload;
+      })
+      .addCase(fetchAppointments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch appointments';
+      })
+      // Fetch by email
+      .addCase(fetchAppointmentsByEmail.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAppointmentsByEmail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.appointments = action.payload;
+      })
+      // Create
+      .addCase(createAppointment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(createAppointment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.appointments.push(action.payload);
+      })
+      .addCase(createAppointment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to create appointment';
+      })
+      // Cancel
+      .addCase(cancelAppointmentAsync.fulfilled, (state, action) => {
+        const appointment = state.appointments.find(a => a.id === action.payload);
+        if (appointment) {
+          appointment.status = 'cancelled';
+        }
+      });
   },
 });
 
-export const { addAppointment, cancelAppointment, setLoading, setError } =
-  appointmentSlice.actions;
+export const { clearError } = appointmentSlice.actions;
 
 export default appointmentSlice.reducer;

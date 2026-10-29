@@ -39,13 +39,20 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {['Home', 'Services', 'Book Now', 'My Appointments', 'Contact'].map((link) => (
-                <li key={link}>
+              {[
+                { label: 'Home', path: '/' },
+                { label: 'Services', path: '/services' },
+                { label: 'Book Now', path: '/booking' },
+                { label: 'My Appointments', path: '/appointments' },
+                { label: 'Dashboard', path: '/dashboard' },
+                { label: 'Contact', path: '/contact' },
+              ].map((link) => (
+                <li key={link.label}>
                   <Link
-                    to={link === 'Home' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`}
+                    to={link.path}
                     className="text-sm text-gray-400 hover:text-amber-500 transition-colors"
                   >
-                    {link}
+                    {link.label}
                   </Link>
                 </li>
               ))}

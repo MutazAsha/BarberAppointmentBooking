@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
+import { useToast } from '../components/Toast';
 
 const ContactPage: React.FC = () => {
+  const { showToast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -10,13 +14,22 @@ const ContactPage: React.FC = () => {
     message: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+    setSubmitting(true);
+    try {
+      await api.submitContactForm(formData);
+      setSubmitted(true);
+      showToast('success', 'Message Sent!', "We'll get back to you soon.");
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      }, 3000);
+    } catch (err) {
+      showToast('error', 'Failed to Send', 'Please try again later.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -26,61 +39,27 @@ const ContactPage: React.FC = () => {
         <div className="text-center mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Contact Us</h1>
           <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as
-            possible.
+            Have questions? We'd love to hear from you.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Info Cards */}
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
-                <MapPin className="w-6 h-6 text-amber-600" />
+            {[
+              { icon: MapPin, title: 'Visit Us', content: '123 Main Street, Downtown\nNew York, NY 10001' },
+              { icon: Phone, title: 'Call Us', content: 'Phone: (555) 123-4567\nWhatsApp: (555) 987-6543' },
+              { icon: Mail, title: 'Email Us', content: 'info@sharpcuts.com\nbookings@sharpcuts.com' },
+              { icon: Clock, title: 'Working Hours', content: 'Mon-Fri: 9AM - 7PM\nSaturday: 9AM - 6PM\nSunday: Closed' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                  <item.icon className="w-6 h-6 text-amber-600" />
+                </div>
+                <h3 className="font-bold text-gray-900">{item.title}</h3>
+                <p className="text-sm text-gray-500 mt-2 whitespace-pre-line">{item.content}</p>
               </div>
-              <h3 className="font-bold text-gray-900">Visit Us</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                123 Main Street, Downtown
-                <br />
-                New York, NY 10001
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
-                <Phone className="w-6 h-6 text-amber-600" />
-              </div>
-              <h3 className="font-bold text-gray-900">Call Us</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                Phone: (555) 123-4567
-                <br />
-                WhatsApp: (555) 987-6543
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
-                <Mail className="w-6 h-6 text-amber-600" />
-              </div>
-              <h3 className="font-bold text-gray-900">Email Us</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                info@sharpcuts.com
-                <br />
-                bookings@sharpcuts.com
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6 text-amber-600" />
-              </div>
-              <h3 className="font-bold text-gray-900">Working Hours</h3>
-              <div className="text-sm text-gray-500 mt-2 space-y-1">
-                <p>Monday - Friday: 9:00 AM - 7:00 PM</p>
-                <p>Saturday: 9:00 AM - 6:00 PM</p>
-                <p>Sunday: Closed</p>
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Contact Form */}
@@ -90,40 +69,34 @@ const ContactPage: React.FC = () => {
 
               {submitted ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">Message Sent!</h3>
-                  <p className="text-gray-500 mt-2">
-                    Thank you for reaching out. We'll get back to you shortly.
-                  </p>
+                  <p className="text-gray-500 mt-2">Thank you for reaching out. We'll get back to you shortly.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Your Name
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
                       <input
                         type="text"
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email Address
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                       <input
                         type="email"
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -135,7 +108,7 @@ const ContactPage: React.FC = () => {
                       required
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       placeholder="How can we help?"
                     />
                   </div>
@@ -146,16 +119,26 @@ const ContactPage: React.FC = () => {
                       rows={5}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none transition-all"
                       placeholder="Tell us more about your inquiry..."
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-amber-600 hover:to-amber-700 transition-all shadow-md"
+                    disabled={submitting}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-amber-600 hover:to-amber-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Send className="w-4 h-4" />
-                    Send Message
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Send Message
+                      </>
+                    )}
                   </button>
                 </form>
               )}
@@ -165,11 +148,16 @@ const ContactPage: React.FC = () => {
 
         {/* Map Placeholder */}
         <div className="mt-12 bg-white rounded-2xl p-1 border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-64 flex items-center justify-center rounded-xl">
-            <div className="text-center">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 h-64 flex items-center justify-center rounded-xl relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-4 left-4 w-20 h-20 border-2 border-amber-300 rounded-lg" />
+              <div className="absolute bottom-8 right-8 w-32 h-32 border-2 border-amber-300 rounded-full" />
+              <div className="absolute top-1/2 left-1/3 w-16 h-16 border-2 border-amber-300 rounded-lg rotate-45" />
+            </div>
+            <div className="text-center relative z-10">
               <MapPin className="w-12 h-12 text-amber-500 mx-auto mb-2" />
-              <p className="text-gray-600 font-medium">123 Main Street, Downtown, NY 10001</p>
-              <p className="text-sm text-gray-400 mt-1">Interactive map would be displayed here</p>
+              <p className="text-gray-700 font-semibold">123 Main Street, Downtown, NY 10001</p>
+              <p className="text-sm text-gray-500 mt-1">Interactive map integration available</p>
             </div>
           </div>
         </div>

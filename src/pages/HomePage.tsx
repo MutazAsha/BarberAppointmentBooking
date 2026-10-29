@@ -1,11 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Star, Clock, Award, Users, ChevronRight, Sparkles } from 'lucide-react';
-import { services, barbers } from '../data/mockData';
+import { Calendar, Star, Clock, Award, Users, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
+import { Service, Barber } from '../types';
 
 const HomePage: React.FC = () => {
-  const topBarbers = barbers.filter((b) => b.available).slice(0, 3);
-  const popularServices = services.slice(0, 4);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [barbersData, servicesData] = await Promise.all([
+          api.getAvailableBarbers(),
+          api.getServices(),
+        ]);
+        setBarbers(barbersData.slice(0, 3));
+        setServices(servicesData.slice(0, 4));
+      } catch (err) {
+        console.error('Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -13,7 +34,7 @@ const HomePage: React.FC = () => {
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-amber-900" />
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-700 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -71,10 +92,12 @@ const HomePage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-amber-700/20 rounded-3xl rotate-6" />
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl flex items-center justify-center border border-gray-700">
                   <div className="text-center space-y-6 p-8">
-                    <div className="text-8xl">💈</div>
+                    <div className="text-8xl animate-bounce">💈</div>
                     <div className="space-y-2">
-                      <p className="text-amber-400 font-semibold text-lg">Next Available</p>
-                      <p className="text-white text-3xl font-bold">Today 2:30 PM</p>
+                      <p className="text-amber-400 font-semibold text-lg">Live Availability</p>
+                      <p className="text-white text-3xl font-bold">
+                        {barbers.filter(b => b.available).length} Barbers Available
+                      </p>
                       <p className="text-gray-400 text-sm">Walk-ins welcome</p>
                     </div>
                     <Link
@@ -91,7 +114,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -101,10 +124,7 @@ const HomePage: React.FC = () => {
               { icon: Star, title: '5-Star Rated', desc: 'Top quality' },
               { icon: Users, title: 'All Welcome', desc: 'Everyone welcome' },
             ].map((feature, i) => (
-              <div
-                key={i}
-                className="text-center p-6 rounded-2xl bg-gray-50 hover:bg-amber-50 transition-colors group"
-              >
+              <div key={i} className="text-center p-6 rounded-2xl bg-gray-50 hover:bg-amber-50 transition-colors group">
                 <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-amber-200 transition-colors">
                   <feature.icon className="w-6 h-6 text-amber-600" />
                 </div>
@@ -116,7 +136,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Popular Services */}
+      {/* Popular Services - Dynamic */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -125,42 +145,44 @@ const HomePage: React.FC = () => {
               Choose from our wide range of premium grooming services
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularServices.map((service) => (
-              <div
-                key={service.id}
-                className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group hover:-translate-y-1"
-              >
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-500 transition-colors">
-                  <span className="text-2xl">
-                    {service.category === 'Hair' ? '✂️' : service.category === 'Beard' ? '🧔' : service.category === 'Shave' ? '🪒' : '💆'}
-                  </span>
-                </div>
-                <h3 className="font-bold text-gray-900 text-lg">{service.name}</h3>
-                <p className="text-sm text-gray-500 mt-2 line-clamp-2">{service.description}</p>
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-amber-600 font-bold text-lg">${service.price}</span>
-                  <span className="text-sm text-gray-400 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {service.duration} min
-                  </span>
-                </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {services.map((service) => (
+                  <div key={service.id} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group hover:-translate-y-1">
+                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-500 transition-colors">
+                      <span className="text-2xl">
+                        {service.category === 'Hair' ? '✂️' : service.category === 'Beard' ? '🧔' : service.category === 'Shave' ? '🪒' : '💆'}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg">{service.name}</h3>
+                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">{service.description}</p>
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                      <span className="text-amber-600 font-bold text-lg">${service.price}</span>
+                      <span className="text-sm text-gray-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {service.duration} min
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-2 text-amber-600 font-semibold hover:text-amber-700 transition-colors"
-            >
-              View All Services
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+              <div className="text-center mt-8">
+                <Link to="/services" className="inline-flex items-center gap-2 text-amber-600 font-semibold hover:text-amber-700 transition-colors">
+                  View All Services
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      {/* Our Barbers */}
+      {/* Our Barbers - Dynamic */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -169,40 +191,49 @@ const HomePage: React.FC = () => {
               Our talented team of professionals is ready to give you the perfect look
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {topBarbers.map((barber) => (
-              <div
-                key={barber.id}
-                className="bg-gradient-to-b from-gray-50 to-white rounded-2xl p-8 text-center border border-gray-100 hover:shadow-lg transition-all duration-300 group"
-              >
-                <div className="text-6xl mb-4">{barber.avatar}</div>
-                <h3 className="text-xl font-bold text-gray-900">{barber.name}</h3>
-                <p className="text-amber-600 text-sm font-medium mt-1">{barber.specialty}</p>
-                <div className="flex items-center justify-center gap-1 mt-3">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  <span className="text-sm font-semibold text-gray-900">{barber.rating}</span>
-                  <span className="text-sm text-gray-400">({barber.reviews} reviews)</span>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {barbers.map((barber) => (
+                <div key={barber.id} className="bg-gradient-to-b from-gray-50 to-white rounded-2xl p-8 text-center border border-gray-100 hover:shadow-lg transition-all duration-300 group">
+                  <div className="text-6xl mb-4">{barber.avatar}</div>
+                  <h3 className="text-xl font-bold text-gray-900">{barber.name}</h3>
+                  <p className="text-amber-600 text-sm font-medium mt-1">{barber.specialty}</p>
+                  <div className="flex items-center justify-center gap-1 mt-3">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span className="text-sm font-semibold text-gray-900">{barber.rating}</span>
+                    <span className="text-sm text-gray-400">({barber.reviews} reviews)</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">{barber.experience} years experience</p>
+                  <div className="mt-3">
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      barber.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {barber.available ? '● Available' : '● Off Duty'}
+                    </span>
+                  </div>
+                  <Link
+                    to="/booking"
+                    className="mt-4 inline-block bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                    Book with {barber.name.split(' ')[0]}
+                  </Link>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">{barber.experience} years experience</p>
-                <Link
-                  to="/booking"
-                  className="mt-4 inline-block bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Book with {barber.name.split(' ')[0]}
-                </Link>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-16 bg-gradient-to-r from-amber-500 to-amber-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white">Ready for a Fresh Look?</h2>
           <p className="mt-4 text-amber-100 text-lg max-w-2xl mx-auto">
-            Book your appointment online in just a few clicks. Choose your service, pick your barber,
-            and select a time that works for you.
+            Book your appointment online in just a few clicks.
           </p>
           <Link
             to="/booking"
