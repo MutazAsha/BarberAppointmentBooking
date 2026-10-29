@@ -1,0 +1,40 @@
+name: Deploy Backend to Azure
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore backend/SharpCuts.API/
+
+      - name: Build
+        run: dotnet build backend/SharpCuts.API/ --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test backend/ --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish backend/SharpCuts.API/ --configuration Release --output ./publish
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_APP_SERVICE_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: ./publish
