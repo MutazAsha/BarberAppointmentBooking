@@ -1,7 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    ============================================
+    DOMAIN LAYER - Core Business Rules
+    ============================================
+    Contains: Entities, Enums, Value Objects
+    Dependencies: NONE (pure C# code)
+    This layer has ZERO external dependencies.
+  -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SharpCuts.Domain</RootNamespace>
   </PropertyGroup>
 </Project>
