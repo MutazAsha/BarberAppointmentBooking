@@ -1,61 +1,248 @@
+// ============================================
+// INFRASTRUCTURE LAYER - Repository Implementations
+// ============================================
+// These classes implement the repository interfaces from the Application layer.
+// They use Entity Framework Core to query and persist data.
+//
+// PERFORMANCE NOTES:
+// - All methods are async (non-blocking)
+// - Uses AsNoTracking() for read-only queries (faster)
+// - Uses proper indexing (configured in DbContext)
+
 using Microsoft.EntityFrameworkCore;
+using SharpCuts.Application.Interfaces;
 using SharpCuts.Domain.Entities;
-using SharpCuts.Domain.Interfaces;
+using SharpCuts.Domain.Enums;
 using SharpCuts.Infrastructure.Data;
 
 namespace SharpCuts.Infrastructure.Repositories;
 
-public class ServiceRepository : IServiceRepository
+/// <summary>
+/// Generic repository base class.
+/// Provides common CRUD operations for all entities.
+/// </summary>
+public class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    private readonly AppDbContext _context;
-    public ServiceRepository(AppDbContext context) => _context = context;
+    protected readonly AppDbContext _context;
+    protected readonly DbSet<T> _dbSet;
 
-    public async Task<IEnumerable<Service>> GetAllAsync() => await _context.Services.ToListAsync();
-    public async Task<Service?> GetByIdAsync(Guid id) => await _context.Services.FindAsync(id);
-    public async Task<Service> AddAsync(Service entity) { await _context.Services.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
-    public async Task UpdateAsync(Service entity) { _context.Services.Update(entity); await _context.SaveChangesAsync(); }
-    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.Services.Remove(e); await _context.SaveChangesAsync(); return true; }
-    public async Task<IEnumerable<Service>> GetByCategoryAsync(string category) => await _context.Services.Where(s => s.Category == category && s.IsActive).ToListAsync();
-    public async Task<IEnumerable<Service>> GetActiveServicesAsync() => await _context.Services.Where(s => s.IsActive).ToListAsync();
+    public Repository(AppDbContext context)
+    {
+        _context = context;
+        _dbSet = context.Set<T>();
+    }
+
+    /// <summary>
+    /// PERFORMANCE: AsNoTracking() tells EF not to track changes.
+    /// This is faster for read-only queries.
+    /// </summary>
+    public async Task<IReadOnlyList<T>> GetAllAsync()
+    {
+        return await _dbSet.AsNoTracking().ToListAsync();
+    }
+
+    public async Task<T?> GetByIdAsync(Guid id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
+    public async Task<T> AddAsync(T entity)
+    {
+        await _dbSet.AddAsync(entity);
+        await _context.SaveChangesAsync();
+        return entity;
+    }
+
+    public async Task UpdateAsync(T entity)
+    {
+        _context.Entry(entity).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var entity = await _dbSet.FindAsync(id);
+        if (entity == null) return false;
+
+        _dbSet.Remove(entity);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ExistsAsync(Guid id)
+    {
+        return await _dbSet.AnyAsync(e => e.Id == id);
+    }
 }
 
-public class BarberRepository : IBarberRepository
+/// <summary>
+/// User repository with authentication-specific queries.
+/// </summary>
+public class UserRepository : Repository<User>, IUserRepository
 {
-    private readonly AppDbContext _context;
-    public BarberRepository(AppDbContext context) => _context = context;
+    public UserRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Barber>> GetAllAsync() => await _context.Barbers.ToListAsync();
-    public async Task<Barber?> GetByIdAsync(Guid id) => await _context.Barbers.FindAsync(id);
-    public async Task<Barber> AddAsync(Barber entity) { await _context.Barbers.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
-    public async Task UpdateAsync(Barber entity) { _context.Barbers.Update(entity); await _context.SaveChangesAsync(); }
-    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.Barbers.Remove(e); await _context.SaveChangesAsync(); return true; }
-    public async Task<IEnumerable<Barber>> GetAvailableBarbersAsync() => await _context.Barbers.Where(b => b.Available).ToListAsync();
+    public async Task<User?> GetByEmailAsync(string email)
+    {
+        // PERFORMANCE: Email is indexed, so this is fast
+        return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    public async Task<bool> EmailExistsAsync(string email)
+    {
+        // PERFORMANCE: Any() is optimized by EF to use EXISTS in SQL
+        return await _dbSet.AnyAsync(u => u.Email == email);
+    }
 }
 
-public class AppointmentRepository : IAppointmentRepository
+/// <summary>
+/// Service repository with category filtering.
+/// </summary>
+public class ServiceRepository : Repository<Service>, IServiceRepository
 {
-    private readonly AppDbContext _context;
-    public AppointmentRepository(AppDbContext context) => _context = context;
+    public ServiceRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Appointment>> GetAllAsync() => await _context.Appointments.ToListAsync();
-    public async Task<Appointment?> GetByIdAsync(Guid id) => await _context.Appointments.FindAsync(id);
-    public async Task<Appointment> AddAsync(Appointment entity) { await _context.Appointments.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
-    public async Task UpdateAsync(Appointment entity) { _context.Appointments.Update(entity); await _context.SaveChangesAsync(); }
-    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.Appointments.Remove(e); await _context.SaveChangesAsync(); return true; }
-    public async Task<IEnumerable<Appointment>> GetByCustomerEmailAsync(string email) => await _context.Appointments.Where(a => a.CustomerEmail == email).ToListAsync();
-    public async Task<IEnumerable<Appointment>> GetByBarberIdAsync(Guid barberId) => await _context.Appointments.Where(a => a.BarberId == barberId).ToListAsync();
-    public async Task<IEnumerable<Appointment>> GetByDateAsync(string date) => await _context.Appointments.Where(a => a.Date == date).ToListAsync();
-    public async Task<bool> HasConflictAsync(Guid barberId, string date, string time) => await _context.Appointments.AnyAsync(a => a.BarberId == barberId && a.Date == date && a.Time == time && a.Status != "cancelled");
+    public async Task<IReadOnlyList<Service>> GetActiveAsync()
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => s.IsActive)
+            .OrderBy(s => s.Name)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<Service>> GetByCategoryAsync(ServiceCategory category)
+    {
+        // PERFORMANCE: Category is indexed
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => s.Category == category && s.IsActive)
+            .OrderBy(s => s.Name)
+            .ToListAsync();
+    }
 }
 
-public class ContactRepository : IContactRepository
+/// <summary>
+/// Barber repository with availability filtering.
+/// </summary>
+public class BarberRepository : Repository<Barber>, IBarberRepository
 {
-    private readonly AppDbContext _context;
-    public ContactRepository(AppDbContext context) => _context = context;
+    public BarberRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<ContactMessage>> GetAllAsync() => await _context.ContactMessages.ToListAsync();
-    public async Task<ContactMessage?> GetByIdAsync(Guid id) => await _context.ContactMessages.FindAsync(id);
-    public async Task<ContactMessage> AddAsync(ContactMessage entity) { await _context.ContactMessages.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
-    public async Task UpdateAsync(ContactMessage entity) { _context.ContactMessages.Update(entity); await _context.SaveChangesAsync(); }
-    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.ContactMessages.Remove(e); await _context.SaveChangesAsync(); return true; }
+    public async Task<IReadOnlyList<Barber>> GetAvailableAsync()
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(b => b.IsAvailable)
+            .OrderBy(b => b.Rating descending) // Show highest-rated first
+            .ToListAsync();
+    }
+}
+
+/// <summary>
+/// Appointment repository with complex scheduling queries.
+/// </summary>
+public class AppointmentRepository : Repository<Appointment>, IAppointmentRepository
+{
+    public AppointmentRepository(AppDbContext context) : base(context) { }
+
+    public async Task<IReadOnlyList<Appointment>> GetByCustomerAsync(Guid customerId)
+    {
+        return await _dbSet
+            .Include(a => a.Service) // Eager load related data
+            .Include(a => a.Barber)
+            .Where(a => a.CustomerId == customerId)
+            .OrderByDescending(a => a.AppointmentDate)
+            .ThenBy(a => a.StartTime)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<Appointment>> GetByBarberAsync(Guid barberId)
+    {
+        return await _dbSet
+            .Include(a => a.Service)
+            .Include(a => a.Customer)
+            .Where(a => a.BarberId == barberId)
+            .OrderBy(a => a.AppointmentDate)
+            .ThenBy(a => a.StartTime)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<Appointment>> GetByDateAsync(DateTime date)
+    {
+        return await _dbSet
+            .Include(a => a.Service)
+            .Include(a => a.Barber)
+            .Include(a => a.Customer)
+            .Where(a => a.AppointmentDate.Date == date.Date)
+            .OrderBy(a => a.StartTime)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// CRITICAL: Checks for scheduling conflicts.
+    /// Uses the composite index for fast lookup.
+    /// </summary>
+    public async Task<bool> HasConflictAsync(Guid barberId, DateTime date, string startTime)
+    {
+        return await _dbSet
+            .AnyAsync(a => 
+                a.BarberId == barberId &&
+                a.AppointmentDate.Date == date.Date &&
+                a.StartTime == startTime &&
+                a.Status != AppointmentStatus.Cancelled);
+    }
+
+    public async Task<IReadOnlyList<Appointment>> GetByStatusAsync(AppointmentStatus status)
+    {
+        return await _dbSet
+            .Include(a => a.Service)
+            .Include(a => a.Barber)
+            .Include(a => a.Customer)
+            .Where(a => a.Status == status)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// PERFORMANCE: Pagination prevents loading all records.
+    /// Uses Skip/Take for efficient paging.
+    /// </summary>
+    public async Task<(IReadOnlyList<Appointment> Items, int TotalCount)> GetPagedAsync(
+        int page, int pageSize, Guid? customerId = null)
+    {
+        var query = _dbSet
+            .Include(a => a.Service)
+            .Include(a => a.Barber)
+            .Include(a => a.Customer)
+            .AsQueryable();
+
+        if (customerId.HasValue)
+            query = query.Where(a => a.CustomerId == customerId.Value);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(a => a.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+}
+
+/// <summary>
+/// Contact message repository.
+/// </summary>
+public class ContactRepository : Repository<ContactMessage>, IContactRepository
+{
+    public ContactRepository(AppDbContext context) : base(context) { }
+
+    public async Task<IReadOnlyList<ContactMessage>> GetUnreadAsync()
+    {
+        return await _dbSet
+            .Where(m => !m.IsRead)
+            .OrderByDescending(m => m.CreatedAt)
+            .ToListAsync();
+    }
 }

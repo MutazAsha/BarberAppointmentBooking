@@ -1,32 +1,90 @@
 # 💈 SharpCuts - Full Stack Barber Shop Booking System
 
-A complete **full-stack** barber shop appointment booking system with a modern React frontend and Node.js/Express backend.
+A **production-ready** full-stack application built with **React + TypeScript** frontend and **ASP.NET Core 8** backend, featuring **JWT authentication**, **layered architecture**, and **enterprise-grade security**.
 
-![SharpCuts](https://img.shields.io/badge/SharpCuts-v1.0-amber)
-![React](https://img.shields.io/badge/React-18-blue)
-![Node.js](https://img.shields.io/badge/Node.js-18+-green)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![SharpCuts](https://img.shields.io/badge/SharpCuts-v2.0-amber?style=for-the-badge)
+![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
+![ASP.NET](https://img.shields.io/badge/ASP.NET-8-purple?style=for-the-badge&logo=.net)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
+![JWT](https://img.shields.io/badge/Auth-JWT-red?style=for-the-badge)
 
 ---
 
-## 🌟 Features
+## 🎯 Project Overview
 
-### Frontend
-- ✅ **Dynamic Booking System** - Real-time availability & conflict detection
-- ✅ **Admin Dashboard** - Live analytics, revenue tracking, performance metrics
-- ✅ **Responsive Design** - Mobile, tablet, and desktop optimized
-- ✅ **Toast Notifications** - Real-time user feedback
-- ✅ **Form Validation** - Client-side validation with error handling
-- ✅ **Redux State Management** - Centralized state with async thunks
+SharpCuts is a complete barber shop appointment booking system with:
 
-### Backend
-- ✅ **RESTful API** - Complete CRUD operations
-- ✅ **Layered Architecture** - Clean separation of concerns
-- ✅ **Dependency Injection** - Professional DI container
-- ✅ **Repository Pattern** - Data access abstraction
-- ✅ **JSON Storage** - Persistent data without database setup
-- ✅ **CORS Enabled** - Secure cross-origin requests
+✅ **React Frontend** - Modern, responsive UI with TypeScript  
+✅ **ASP.NET Core Backend** - Enterprise-grade API with .NET 8  
+✅ **JWT Authentication** - Secure token-based auth  
+✅ **Layered Architecture** - Clean separation of concerns  
+✅ **Dependency Injection** - Professional DI patterns  
+✅ **Entity Framework Core** - ORM with InMemory/SQL Server  
+✅ **Role-Based Authorization** - Admin and Customer roles  
+✅ **Performance Optimized** - Caching, async/await, pagination  
+✅ **Fully Documented** - Extensive code comments  
+
+---
+
+## 🏗️ Architecture
+
+### Backend (ASP.NET Core 8)
+
+```
+┌─────────────────────────────────────────┐
+│         API Layer (Controllers)         │  ← HTTP endpoints, JWT validation
+├─────────────────────────────────────────┤
+│     Application Layer (Services)        │  ← Business logic, DTOs
+├─────────────────────────────────────────┤
+│       Domain Layer (Entities)           │  ← Core business objects
+├─────────────────────────────────────────┤
+│   Infrastructure Layer (EF Core)        │  ← Data access, repositories
+└─────────────────────────────────────────┘
+```
+
+**Layers:**
+1. **SharpCuts.API** - Web API controllers, middleware, authentication
+2. **SharpCuts.Application** - Business services, DTOs, interfaces
+3. **SharpCuts.Domain** - Entities, enums, business rules
+4. **SharpCuts.Infrastructure** - EF Core, repositories, DI registration
+
+### Frontend (React 18)
+
+```
+┌─────────────────────────────────────────┐
+│           Pages (Routes)                │  ← Login, Booking, Dashboard
+├─────────────────────────────────────────┤
+│         Components (UI)                 │  ← Navbar, Toast, Forms
+├─────────────────────────────────────────┤
+│      Redux Store (State)                │  ← Global state management
+├─────────────────────────────────────────┤
+│      Services (API Calls)               │  ← Auth, HTTP requests
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🔐 Security Features
+
+### JWT Authentication
+- **BCrypt Password Hashing** - Passwords never stored in plain text
+- **JWT Tokens** - Signed with HMAC-SHA256
+- **Token Expiration** - Configurable (default: 24 hours)
+- **Role-Based Access** - Customer and Admin roles
+- **Protected Routes** - Frontend and backend validation
+
+### Authorization
+- `[Authorize]` attribute on protected endpoints
+- `[Authorize(Roles = "Admin")]` for admin-only routes
+- Users can only access their own data
+- JWT claims contain user ID, email, and role
+
+### Security Best Practices
+- CORS configured for specific origins
+- HTTPS redirection enabled
+- Input validation on all endpoints
+- SQL injection prevention (EF Core parameterized queries)
+- XSS protection (React escapes output by default)
 
 ---
 
@@ -34,108 +92,213 @@ A complete **full-stack** barber shop appointment booking system with a modern R
 
 ### Prerequisites
 
-- Node.js 18+ ([Download](https://nodejs.org/))
-- npm 9+ (comes with Node.js)
-- Git ([Download](https://git-scm.com/))
+- **Visual Studio 2022** (or VS Code)
+- **.NET 8 SDK** - [Download](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **Node.js 18+** - [Download](https://nodejs.org/)
+- **SQL Server** (optional - uses InMemory by default)
 
-### Installation
+### 1. Open in Visual Studio
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/sharpcuts.git
-cd sharpcuts
-
-# Install frontend dependencies
-npm install
-
-# Install backend dependencies
-cd server
-npm install
-cd ..
+# Double-click SharpCuts.sln
+# Or from command line:
+devenv SharpCuts.sln
 ```
 
-### Running the Application
+### 2. Restore Dependencies
 
-**Option 1: Separate Terminals (Recommended)**
-
-Terminal 1 - Backend:
+**Backend:**
 ```bash
-cd server
+dotnet restore
+```
+
+**Frontend:**
+```bash
+npm install
+```
+
+### 3. Run Backend
+
+In Visual Studio:
+1. Set **SharpCuts.API** as startup project
+2. Press **F5** to run
+3. Backend starts on **http://localhost:5000**
+4. Swagger opens at **http://localhost:5000/swagger**
+
+Or from command line:
+```bash
+cd backend/SharpCuts.API
+dotnet run
+```
+
+### 4. Run Frontend
+
+```bash
 npm run dev
 ```
 
-Terminal 2 - Frontend:
-```bash
-npm run dev
-```
+Frontend starts on **http://localhost:5173**
 
-**Option 2: Combined (if you add concurrently)**
+### 5. Test the Application
 
-```bash
-npm install -D concurrently
-npm run dev:all
-```
-
-### Access the Application
-
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5000
-- **API Health**: http://localhost:5000/api/health
+**Demo Credentials:**
+- **Customer:** customer@sharpcuts.com / Customer123!
+- **Admin:** admin@sharpcuts.com / Admin123!
 
 ---
 
-## 📁 Project Structure
+## 📡 API Endpoints
+
+### Authentication (Public)
+```
+POST /api/auth/register    - Create account
+POST /api/auth/login       - Login, get JWT token
+```
+
+### Services (Public)
+```
+GET  /api/services         - Get all services
+GET  /api/services/{id}    - Get service by ID
+GET  /api/services/category/{category} - Filter by category
+```
+
+### Barbers (Public)
+```
+GET  /api/barbers          - Get all barbers
+GET  /api/barbers/available - Get available barbers
+GET  /api/barbers/{id}     - Get barber by ID
+```
+
+### Bookings (Protected - Requires JWT)
+```
+POST /api/bookings         - Create appointment
+GET  /api/bookings/my      - Get my appointments
+PUT  /api/bookings/{id}/cancel - Cancel appointment
+GET  /api/bookings/slots/{barberId}?date=YYYY-MM-DD - Get available slots
+```
+
+### Dashboard (Admin Only)
+```
+GET  /api/dashboard/stats  - Get statistics
+GET  /api/dashboard/today  - Get today's schedule
+```
+
+### Contact (Public)
+```
+POST /api/contact          - Submit contact form
+```
+
+---
+
+## 🧪 Testing the API
+
+### Using Swagger UI
+
+1. Navigate to **http://localhost:5000/swagger**
+2. Click **"Authorize"** button
+3. Enter: `Bearer YOUR_JWT_TOKEN`
+4. Test protected endpoints
+
+### Using cURL
+
+**Login:**
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "customer@sharpcuts.com",
+    "password": "Customer123!"
+  }'
+```
+
+**Create Booking (with JWT):**
+```bash
+curl -X POST http://localhost:5000/api/bookings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "serviceId": "11111111-1111-1111-1111-111111111111",
+    "barberId": "22222222-2222-2222-2222-222222222221",
+    "appointmentDate": "2026-01-20",
+    "startTime": "14:30"
+  }'
+```
+
+---
+
+## 📂 Project Structure
 
 ```
-sharpcuts/
-├── 📁 src/                          # Frontend (React)
-│   ├── 📁 components/               # Reusable UI components
-│   │   ├── Navbar.tsx
+SharpCuts/
+├── SharpCuts.sln                    # Visual Studio solution
+│
+├── backend/
+│   ├── SharpCuts.API/               # Web API layer
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.cs    # Login/Register
+│   │   │   ├── ResourceControllers.cs # Services, Barbers, Contact
+│   │   │   └── ProtectedControllers.cs # Bookings, Dashboard
+│   │   ├── Properties/
+│   │   │   └── launchSettings.json
+│   │   ├── Program.cs               # Entry point, DI setup
+│   │   ├── appsettings.json         # Configuration
+│   │   └── SharpCuts.API.csproj
+│   │
+│   ├── SharpCuts.Application/       # Business logic layer
+│   │   ├── DTOs/
+│   │   │   └── DTOs.cs              # Data transfer objects
+│   │   ├── Interfaces/
+│   │   │   ├── IRepositories.cs     # Repository contracts
+│   │   │   └── IServices.cs         # Service contracts
+│   │   ├── Services/
+│   │   │   ├── AuthService.cs       # JWT authentication
+│   │   │   └── BusinessServices.cs  # Booking, Dashboard, etc.
+│   │   └── SharpCuts.Application.csproj
+│   │
+│   ├── SharpCuts.Domain/            # Domain layer
+│   │   ├── Entities/
+│   │   │   └── Entities.cs          # User, Service, Barber, Appointment
+│   │   ├── Enums/
+│   │   │   └── Enums.cs             # AppointmentStatus, UserRole
+│   │   └── SharpCuts.Domain.csproj
+│   │
+│   └── SharpCuts.Infrastructure/    # Data access layer
+│       ├── Data/
+│       │   └── AppDbContext.cs      # EF Core context, seed data
+│       ├── Repositories/
+│       │   └── Repositories.cs      # Repository implementations
+│       ├── DependencyInjection.cs   # Service registration
+│       └── SharpCuts.Infrastructure.csproj
+│
+├── src/                             # React frontend
+│   ├── components/
+│   │   ├── Navbar.tsx               # Navigation with auth
 │   │   ├── Footer.tsx
-│   │   ├── Toast.tsx
+│   │   ├── Toast.tsx                # Notification system
 │   │   └── LoadingSpinner.tsx
-│   ├── 📁 pages/                    # Page components
+│   ├── pages/
 │   │   ├── HomePage.tsx
 │   │   ├── ServicesPage.tsx
-│   │   ├── BookingPage.tsx
-│   │   ├── AppointmentsPage.tsx
-│   │   ├── DashboardPage.tsx
-│   │   └── ContactPage.tsx
-│   ├── 📁 store/                    # Redux store
-│   │   ├── index.ts
+│   │   ├── BookingPage.tsx          # Protected
+│   │   ├── AppointmentsPage.tsx     # Protected
+│   │   ├── DashboardPage.tsx        # Admin only
+│   │   ├── ContactPage.tsx
+│   │   ├── LoginPage.tsx
+│   │   └── RegisterPage.tsx
+│   ├── services/
+│   │   ├── api.ts                   # Public API calls
+│   │   └── authApi.ts               # Auth + protected API calls
+│   ├── store/
+│   │   ├── index.ts                 # Redux store
 │   │   ├── bookingSlice.ts
 │   │   ├── appointmentSlice.ts
 │   │   └── uiSlice.ts
-│   ├── 📁 services/                 # API service
-│   │   └── api.ts
-│   ├── 📁 types/                    # TypeScript types
+│   ├── types/
 │   │   └── index.ts
-│   ├── App.tsx
+│   ├── App.tsx                      # Routes, protected routes
 │   └── main.tsx
 │
-├── 📁 server/                       # Backend (Node.js/Express)
-│   ├── 📁 src/
-│   │   ├── 📁 api/                  # Routes/Controllers
-│   │   │   └── routes.ts
-│   │   ├── 📁 application/          # Business logic
-│   │   │   └── services.ts
-│   │   ├── 📁 domain/               # Entities & interfaces
-│   │   │   ├── entities.ts
-│   │   │   ├── interfaces.ts
-│   │   │   └── dtos.ts
-│   │   ├── 📁 infrastructure/       # Data access & DI
-│   │   │   ├── container.ts
-│   │   │   ├── repositories.ts
-│   │   │   └── dataStore.ts
-│   │   └── index.ts                 # Server entry
-│   ├── 📁 data/                     # JSON storage (auto-created)
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── 📁 backend/                      # .NET Backend (Reference)
-│   └── SharpCuts.sln
-│
-├── .vscode/                         # VS Code config
+├── .vscode/                         # VS Code configuration
 ├── .env                             # Environment variables
 ├── package.json                     # Frontend dependencies
 └── README.md                        # This file
@@ -143,375 +306,221 @@ sharpcuts/
 
 ---
 
-## 🎯 Features in Detail
+## 🔑 Authentication Flow
 
-### 1. Home Page
-- Hero section with live barber availability
-- Dynamic service cards
-- Barber profiles with ratings
-- Call-to-action sections
+### 1. Registration
+```
+User → POST /api/auth/register
+     → Password hashed with BCrypt
+     → User saved to database
+     → JWT token generated
+     → Token returned to client
+```
 
-### 2. Services Page
-- Search functionality
-- Category filtering (Hair, Beard, Shave, Combo, Treatment)
-- Sort by name/price/duration
-- Book buttons for each service
+### 2. Login
+```
+User → POST /api/auth/login
+     → Password verified against hash
+     → JWT token generated with claims (userId, email, role)
+     → Token returned to client
+     → Client stores token in localStorage
+```
 
-### 3. Booking System (4-Step Wizard)
-**Step 1**: Select Service
-**Step 2**: Choose Barber
-**Step 3**: Pick Date & Time (real-time availability)
-**Step 4**: Enter Details & Confirm
+### 3. Protected Request
+```
+Client → GET /api/bookings/my
+       → Authorization: Bearer <token>
+       → Backend validates token signature
+       → Backend checks token expiration
+       → Backend extracts userId from claims
+       → Returns user's appointments
+```
 
-Features:
-- Real-time slot availability
-- Conflict detection (prevents double-booking)
-- Form validation
-- Success/error notifications
-
-### 4. Appointments Page
-- View all appointments
-- Filter by status (All/Confirmed/Pending/Completed/Cancelled)
-- Cancel appointments with confirmation
-- Sort by date
-- "Upcoming" indicators
-
-### 5. Admin Dashboard
-**Overview Tab:**
-- Today's bookings count
-- Total revenue
-- Confirmed/Pending/Completed/Cancelled counts
-- Service popularity chart
-- Revenue breakdown
-- Today's schedule timeline
-
-**Appointments Tab:**
-- Full appointments table
-- Customer details
-- Status badges
-
-**Barbers Tab:**
-- Barber performance cards
-- Appointment counts
-- Revenue per barber
-
-### 6. Contact Page
-- Contact form with validation
-- Contact information cards
-- Business hours
-- Map placeholder
+### 4. Token Expiration
+```
+Token expires after 24 hours (configurable)
+Client receives 401 Unauthorized
+Client redirects to login page
+User must login again
+```
 
 ---
 
-## 🌐 API Documentation
+## ⚡ Performance Optimizations
 
-### Base URL
-```
-http://localhost:5000/api
-```
+### Backend
+- **Response Caching** - `[ResponseCache(Duration = 300)]` on public endpoints
+- **Async/Await** - All database operations are non-blocking
+- **AsNoTracking()** - Read-only queries skip change tracking
+- **Pagination** - Large datasets use Skip/Take
+- **Indexed Queries** - Composite indexes for conflict checking
+- **Eager Loading** - `.Include()` prevents N+1 queries
 
-### Endpoints
+### Frontend
+- **Code Splitting** - Routes load on demand
+- **Memoization** - `useMemo` and `useCallback` prevent re-renders
+- **Debouncing** - Search inputs debounce API calls
+- **Optimistic Updates** - UI updates before API confirms
 
-#### Services
-```http
-GET    /api/services                    # Get all services
-GET    /api/services/category/:category # Get by category
-GET    /api/services/:id                # Get by ID
-```
+---
 
-#### Barbers
-```http
-GET    /api/barbers                     # Get all barbers
-GET    /api/barbers/available           # Get available barbers
-GET    /api/barbers/:id                 # Get by ID
-PUT    /api/barbers/:id/toggle          # Toggle availability
-```
+## 🗄️ Database
 
-#### Bookings
-```http
-GET    /api/bookings                    # Get all appointments
-GET    /api/bookings/customer/:email    # Get by customer
-GET    /api/bookings/barber/:id         # Get by barber
-GET    /api/bookings/date/:date         # Get by date
-GET    /api/bookings/slots/:barberId/:date  # Get time slots
-POST   /api/bookings                    # Create booking
-PUT    /api/bookings/:id/cancel         # Cancel booking
+### Default: InMemory Database
+- No setup required
+- Data resets on restart
+- Perfect for development and testing
+
+### Production: SQL Server
+Change in `Program.cs`:
+```csharp
+services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 ```
 
-#### Contact
-```http
-POST   /api/contact                     # Submit message
-GET    /api/contact                     # Get all messages
-```
-
-#### Dashboard
-```http
-GET    /api/dashboard/stats             # Get statistics
-GET    /api/dashboard/today             # Get today's schedule
-```
-
-#### Health
-```http
-GET    /api/health                      # Health check
-```
-
-### Example Requests
-
-**Create Booking:**
-```bash
-curl -X POST http://localhost:5000/api/bookings \
-  -H "Content-Type: application/json" \
-  -d '{
-    "serviceId": "1",
-    "barberId": "1",
-    "date": "2026-01-20",
-    "time": "14:30",
-    "customerName": "John Doe",
-    "customerPhone": "+1234567890",
-    "customerEmail": "john@example.com"
-  }'
-```
-
-**Response:**
+Update `appsettings.json`:
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "abc123",
-    "serviceId": "1",
-    "serviceName": "Classic Haircut",
-    "barberId": "1",
-    "barberName": "James Wilson",
-    "date": "2026-01-20",
-    "time": "14:30",
-    "status": "confirmed",
-    "customerName": "John Doe",
-    "customerEmail": "john@example.com",
-    "price": 25,
-    "duration": 30
-  },
-  "message": "Booking created successfully"
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=your-server;Database=SharpCutsDb;..."
+  }
 }
 ```
 
----
-
-## 🏛️ Architecture
-
-### Frontend Architecture
-```
-Components → Redux Store → API Service → Backend
-```
-
-- **React 18** with TypeScript
-- **Redux Toolkit** for state management
-- **React Router v6** for navigation
-- **Tailwind CSS** for styling
-- **Lucide React** for icons
-
-### Backend Architecture
-```
-API Routes → Services → Repositories → Data Store
-```
-
-**Layers:**
-1. **API Layer** - HTTP endpoints (routes.ts)
-2. **Application Layer** - Business logic (services.ts)
-3. **Domain Layer** - Entities, interfaces, DTOs
-4. **Infrastructure Layer** - Repositories, DI container, data access
-
-**Patterns:**
-- **Dependency Injection** - Container manages all dependencies
-- **Repository Pattern** - Abstracts data access
-- **Service Layer** - Encapsulates business logic
-- **DTO Pattern** - Separates API contracts from domain models
+### Seed Data
+The database automatically seeds:
+- 2 users (admin + customer)
+- 8 services
+- 5 barbers
 
 ---
 
-## 🗄️ Data Storage
+## 🎨 Frontend Features
 
-The backend uses **JSON file storage** in `server/data/`:
+### Authentication UI
+- Login page with form validation
+- Register page with password confirmation
+- Protected routes redirect to login
+- Navbar shows user info and logout button
+- Admin-only routes check role
 
-- `services.json` - Service catalog (8 services)
-- `barbers.json` - Barber profiles (5 barbers)
-- `appointments.json` - All appointments
-- `messages.json` - Contact messages
+### Booking Flow
+1. Select service (from API)
+2. Choose barber (from API)
+3. Pick date and time (real-time availability)
+4. Enter details and confirm
+5. Appointment saved to database
 
-**Seed Data:**
-- 8 services across 5 categories
-- 5 barbers with different specialties
-- Sample appointments for testing
-
-**To Reset Data:**
-```bash
-cd server
-rm -rf data/
-npm run dev  # Recreates with seed data
-```
+### Dashboard (Admin)
+- Total appointments count
+- Today's schedule
+- Revenue tracking
+- Service popularity
+- Barber performance
 
 ---
 
-## 🎨 Tech Stack
+## 📚 Code Quality
 
-### Frontend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 18.2.0 | UI library |
-| TypeScript | 5.x | Type safety |
-| Redux Toolkit | 2.x | State management |
-| React Router | 6.x | Navigation |
-| Tailwind CSS | 4.x | Styling |
-| Lucide React | 0.294 | Icons |
-| Vite | 6.x | Build tool |
+### Comments
+Every file has:
+- File-level documentation
+- Class/method XML comments
+- Inline explanations for complex logic
+- Security notes for auth code
 
-### Backend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Node.js | 18+ | Runtime |
-| Express | 4.18 | Web framework |
-| TypeScript | 5.x | Type safety |
-| UUID | 9.x | ID generation |
-| CORS | 2.8 | Cross-origin |
-| ts-node-dev | 2.x | Dev server |
+### Clean Code Principles
+- Single Responsibility Principle
+- Dependency Injection throughout
+- Interface segregation
+- DRY (Don't Repeat Yourself)
+- Meaningful naming
+
+### Error Handling
+- Global exception handling
+- User-friendly error messages
+- Logging with ILogger
+- Try-catch blocks with proper context
 
 ---
 
 ## 🚀 Deployment
 
-### Frontend (Vercel/Netlify)
+### Backend (Azure App Service)
+```bash
+cd backend/SharpCuts.API
+dotnet publish -c Release -o ./publish
+# Upload to Azure App Service
+```
 
+### Frontend (Vercel/Netlify)
 ```bash
 npm run build
 # Deploy dist/ folder
 ```
 
-**Environment Variables:**
-```
-VITE_API_URL=https://your-api-url.com/api
-```
+### Environment Variables
 
-### Backend (Railway/Render/Heroku)
-
-```bash
-cd server
-npm run build
-npm start
-```
-
-**Environment Variables:**
-```
-PORT=5000
-NODE_ENV=production
+**Backend (appsettings.Production.json):**
+```json
+{
+  "JwtSettings": {
+    "SecretKey": "YourProductionSecretKeyAtLeast32Chars!",
+    "Issuer": "SharpCutsAPI",
+    "Audience": "SharpCutsClient",
+    "ExpirationHours": 24
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=prod-server;..."
+  }
+}
 ```
 
-### GitHub Pages (Frontend Only)
-
-```bash
-npm install -D gh-pages
-npm run build
-npx gh-pages -d dist
+**Frontend (.env.production):**
+```
+VITE_API_URL=https://your-api.azurewebsites.net/api
 ```
 
 ---
 
-## 🧪 Testing
+## 🧰 Development Tools
 
-### Manual Testing
+### Visual Studio 2022
+- Open `SharpCuts.sln`
+- F5 to debug backend
+- Swagger UI for API testing
+- Breakpoints in C# code
 
-1. **Start both servers**
-2. **Test booking flow:**
-   - Select service
-   - Choose barber
-   - Pick date & time
-   - Fill details
-   - Confirm booking
-3. **Check dashboard:**
-   - Verify stats update
-   - Check today's schedule
-4. **Test cancellation:**
-   - Cancel appointment
-   - Verify status changes
+### VS Code
+- Open folder in VS Code
+- Install recommended extensions
+- Run tasks from Command Palette
+- Debug with launch.json
 
-### API Testing
-
-Use Postman or REST Client:
-```http
-GET http://localhost:5000/api/services
-POST http://localhost:5000/api/bookings
-```
+### Swagger UI
+- Interactive API documentation
+- Test endpoints directly
+- Authenticate with JWT tokens
+- View request/response schemas
 
 ---
 
-## 🐛 Troubleshooting
+## 📖 Learning Resources
 
-### Backend won't start
-```bash
-cd server
-rm -rf node_modules dist
-npm install
-npm run dev
-```
+### ASP.NET Core
+- [Microsoft Docs](https://docs.microsoft.com/aspnet/core)
+- [JWT Authentication](https://docs.microsoft.com/aspnet/core/security/authentication/jwt-authentication)
+- [Entity Framework Core](https://docs.microsoft.com/ef/core/)
 
-### Frontend can't connect
-1. Check backend is running on port 5000
-2. Verify `VITE_API_URL` in `.env`
-3. Check CORS settings in `server/src/index.ts`
+### React
+- [React Docs](https://react.dev/)
+- [Redux Toolkit](https://redux-toolkit.js.org/)
+- [React Router](https://reactrouter.com/)
 
-### Port already in use
-```bash
-npx kill-port 5000  # Backend
-npx kill-port 5173  # Frontend
-```
-
-### Data not persisting
-- Check `server/data/` directory exists
-- Verify file permissions
-- Restart backend server
-
----
-
-## 📚 Documentation
-
-- **Full Stack Setup**: See `FULLSTACK_SETUP.md`
-- **VS Code Setup**: See `OPEN_IN_VSCODE.md`
-- **Dynamic Features**: See `DYNAMIC_FEATURES.md`
-- **Deployment**: See `DEPLOYMENT.md`
-- **.NET Backend**: See `backend/` folder
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
----
-
-## 📝 License
-
-MIT License - feel free to use this project for learning or commercial purposes.
-
----
-
-## 🎉 Credits
-
-Built with ❤️ using:
-- React + TypeScript
-- Node.js + Express
-- Tailwind CSS
-- Redux Toolkit
-
----
-
-## 📞 Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Check the documentation files
-- Review the code comments
+### Security
+- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
+- [BCrypt](https://github.com/BcryptNet/bcrypt.net)
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 
 ---
 
@@ -519,16 +528,83 @@ For issues and questions:
 
 After setup, verify:
 
-- [ ] Backend starts on port 5000
-- [ ] Frontend starts on port 5173
-- [ ] Can view services
-- [ ] Can create a booking
-- [ ] Can view appointments
-- [ ] Dashboard shows stats
-- [ ] Can cancel appointments
-- [ ] Contact form works
-- [ ] Data persists across refresh
+- [ ] Backend runs on port 5000
+- [ ] Frontend runs on port 5173
+- [ ] Swagger UI accessible
+- [ ] Can register new user
+- [ ] Can login with demo credentials
+- [ ] JWT token received
+- [ ] Can create booking (authenticated)
+- [ ] Can view my appointments
+- [ ] Admin can access dashboard
+- [ ] Customer cannot access dashboard (403)
+- [ ] Token expires after 24 hours
+- [ ] CORS works for frontend
 
 ---
 
-**Enjoy building with SharpCuts!** 💈✨
+## 🎓 Key Concepts Demonstrated
+
+### Backend
+✅ **Layered Architecture** - Clean separation  
+✅ **Dependency Injection** - Constructor injection  
+✅ **Repository Pattern** - Data access abstraction  
+✅ **Unit of Work** - DbContext manages transactions  
+✅ **DTO Pattern** - Separate API contracts  
+✅ **JWT Authentication** - Token-based security  
+✅ **Role-Based Authorization** - Admin vs Customer  
+✅ **BCrypt Hashing** - Secure password storage  
+✅ **Entity Framework Core** - ORM with migrations  
+✅ **Async/Await** - Non-blocking I/O  
+✅ **Response Caching** - Performance optimization  
+✅ **Global Exception Handling** - Consistent errors  
+
+### Frontend
+✅ **React Hooks** - useState, useEffect, useMemo  
+✅ **Redux Toolkit** - Global state management  
+✅ **React Router** - Client-side routing  
+✅ **Protected Routes** - Auth-based navigation  
+✅ **JWT Token Management** - localStorage + axios  
+✅ **TypeScript** - Type safety  
+✅ **Tailwind CSS** - Utility-first styling  
+✅ **Responsive Design** - Mobile-first  
+✅ **Toast Notifications** - User feedback  
+✅ **Form Validation** - Client-side checks  
+
+---
+
+## 🤝 Contributing
+
+This is a production-ready template. Feel free to:
+- Add features
+- Fix bugs
+- Improve documentation
+- Submit pull requests
+
+---
+
+## 📝 License
+
+MIT License - Free to use for personal and commercial projects.
+
+---
+
+## 🎉 Summary
+
+You now have a **complete, production-ready** full-stack application with:
+
+✅ **ASP.NET Core 8 Backend** - Enterprise-grade API  
+✅ **React 18 Frontend** - Modern, responsive UI  
+✅ **JWT Authentication** - Secure token-based auth  
+✅ **Layered Architecture** - Professional patterns  
+✅ **Entity Framework Core** - Database ORM  
+✅ **Role-Based Authorization** - Admin and Customer  
+✅ **Performance Optimized** - Caching, async, pagination  
+✅ **Fully Documented** - Extensive comments  
+✅ **Visual Studio Ready** - Open and run  
+
+**Open `SharpCuts.sln` in Visual Studio and press F5!** 🚀
+
+---
+
+**Built with ❤️ using ASP.NET Core, React, and TypeScript**
