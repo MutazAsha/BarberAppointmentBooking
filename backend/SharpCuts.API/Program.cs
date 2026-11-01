@@ -1,40 +1,39 @@
-using SharpCuts.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using SharpCuts.Application.Services;
+using SharpCuts.Domain.Interfaces;
+using SharpCuts.Infrastructure.Data;
+using SharpCuts.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-// 1. Add Infrastructure Layer (includes DI registrations for services & repositories)
-builder.Services.AddInfrastructure(builder.Configuration);
-
-// 2. Add Controllers with JSON options
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = 
-            System.Text.Json.JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
-
-// 3. Add Swagger/OpenAPI documentation
+// Add services to the container
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new()
-    {
-        Title = "SharpCuts API",
-        Version = "v1",
-        Description = "Barber Shop Appointment Booking API"
-    });
-});
+builder.Services.AddSwaggerGen();
 
-// 4. Add CORS for React frontend
+// Add DbContext with InMemory database (for development)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase("SharpCutsDB"));
+
+// Register repositories
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IBarberRepository, BarberRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
+
+// Register services
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<BarberService>();
+builder.Services.AddScoped<ServiceManagementService>();
+builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<DashboardService>();
+
+// Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -42,14 +41,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Initialize database with seed data
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
+}
+
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
