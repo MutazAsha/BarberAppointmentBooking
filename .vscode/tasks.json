@@ -1,0 +1,88 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install Dependencies",
+      "type": "shell",
+      "command": "npm install",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Frontend Dev Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Build Frontend",
+      "type": "shell",
+      "command": "npm run build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Type Check",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "build-backend",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["build", "backend/SharpCuts.API/SharpCuts.API.csproj"],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "silent"
+      }
+    },
+    {
+      "label": "Start Backend (.NET)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["run", "--project", "backend/SharpCuts.API/SharpCuts.API.csproj"],
+      "group": "build",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Restore .NET Packages",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["restore", "backend/SharpCuts.sln"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run .NET Tests",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["test", "backend/SharpCuts.Tests/SharpCuts.Tests.csproj"],
+      "group": "test",
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "Clean All",
+      "type": "shell",
+      "command": "rm -rf node_modules dist backend/*/bin backend/*/obj",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
