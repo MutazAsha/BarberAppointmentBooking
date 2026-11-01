@@ -5,12 +5,11 @@ public class Service
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public int DurationMinutes { get; set; }
+    public int Duration { get; set; }
     public decimal Price { get; set; }
     public string Category { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 }
 
 public class Barber
@@ -20,46 +19,37 @@ public class Barber
     public string Avatar { get; set; } = string.Empty;
     public string Specialty { get; set; } = string.Empty;
     public decimal Rating { get; set; }
-    public int ReviewCount { get; set; }
-    public int ExperienceYears { get; set; }
-    public bool IsAvailable { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int Reviews { get; set; }
+    public int Experience { get; set; }
+    public bool Available { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
 }
 
 public class Appointment
 {
     public Guid Id { get; set; }
     public Guid ServiceId { get; set; }
+    public string ServiceName { get; set; } = string.Empty;
     public Guid BarberId { get; set; }
+    public string BarberName { get; set; } = string.Empty;
+    public string Date { get; set; } = string.Empty;
+    public string Time { get; set; } = string.Empty;
+    public int Duration { get; set; }
+    public decimal Price { get; set; }
+    public string Status { get; set; } = "confirmed";
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerPhone { get; set; } = string.Empty;
     public string CustomerEmail { get; set; } = string.Empty;
     public string? Notes { get; set; }
-    public DateTime AppointmentDate { get; set; }
-    public string AppointmentTime { get; set; } = string.Empty;
-    public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-
-    // Navigation Properties
-    public Service? Service { get; set; }
-    public Barber? Barber { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
 
-public enum AppointmentStatus
-{
-    Pending,
-    Confirmed,
-    Completed,
-    Cancelled
-}
-
-public class TimeSlot
+public class ContactMessage
 {
     public Guid Id { get; set; }
-    public Guid BarberId { get; set; }
-    public DateTime Date { get; set; }
-    public string Time { get; set; } = string.Empty;
-    public bool IsAvailable { get; set; } = true;
-    public bool IsBooked { get; set; } = false;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }

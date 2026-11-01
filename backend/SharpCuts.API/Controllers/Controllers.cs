@@ -1,150 +1,127 @@
+using Microsoft.AspNetCore.Mvc;
+using SharpCuts.Application.Services;
+
 namespace SharpCuts.API.Controllers;
 
-using Microsoft.AspNetCore.Mvc;
-using SharpCuts.Domain.Interfaces;
-
-/// <summary>
-/// Bookings Controller - Handles appointment booking operations
-/// Uses constructor injection for IBookingService
-/// </summary>
-[ApiController]
-[Route("api/[controller]")]
-public class BookingsController : ControllerBase
-{
-    private readonly IBookingService _bookingService;
-    private readonly ILogger<BookingsController> _logger;
-
-    // Dependency Injection via Constructor
-    public BookingsController(IBookingService bookingService, ILogger<BookingsController> logger)
-    {
-        _bookingService = bookingService;
-        _logger = logger;
-    }
-
-    /// <summary>
-    /// POST /api/bookings - Create a new appointment booking
-    /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var result = await _bookingService.CreateBookingAsync(request);
-
-        if (!result.Success)
-            return BadRequest(new { message = result.ErrorMessage });
-
-        return CreatedAtAction(
-            nameof(GetBooking),
-            new { id = result.AppointmentId },
-            new { id = result.AppointmentId, message = "Booking created successfully" });
-    }
-
-    /// <summary>
-    /// GET /api/bookings/{id} - Get booking details
-    /// </summary>
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetBooking(Guid id)
-    {
-        // Implementation would fetch specific booking
-        return Ok(new { id, message = "Booking details" });
-    }
-
-    /// <summary>
-    /// PUT /api/bookings/{id}/cancel - Cancel a booking
-    /// </summary>
-    [HttpPut("{id}/cancel")]
-    public async Task<IActionResult> CancelBooking(Guid id)
-    {
-        var success = await _bookingService.CancelBookingAsync(id);
-        if (!success)
-            return NotFound(new { message = "Booking not found" });
-
-        return Ok(new { message = "Booking cancelled successfully" });
-    }
-
-    /// <summary>
-    /// GET /api/bookings/customer/{email} - Get customer appointments
-    /// </summary>
-    [HttpGet("customer/{email}")]
-    public async Task<IActionResult> GetCustomerAppointments(string email)
-    {
-        var appointments = await _bookingService.GetCustomerAppointmentsAsync(email);
-        return Ok(appointments);
-    }
-}
-
-/// <summary>
-/// Services Controller - Handles service catalog operations
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class ServicesController : ControllerBase
 {
-    private readonly IServiceManagementService _serviceService;
-
-    public ServicesController(IServiceManagementService serviceService)
-    {
-        _serviceService = serviceService;
-    }
+    private readonly ServiceManagementService _service;
+    public ServicesController(ServiceManagementService service) => _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> GetAllServices()
-    {
-        var services = await _serviceService.GetAllServices();
-        return Ok(services);
-    }
+    public async Task<IActionResult> GetAll() => Ok(new { success = true, data = await _service.GetAllServicesAsync() });
 
     [HttpGet("category/{category}")]
-    public async Task<IActionResult> GetByCategory(string category)
-    {
-        var services = await _serviceService.GetServicesByCategoryAsync(category);
-        return Ok(services);
-    }
+    public async Task<IActionResult> GetByCategory(string category) => Ok(new { success = true, data = await _service.GetServicesByCategoryAsync(category) });
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var service = await _serviceService.GetServiceByIdAsync(id);
-        if (service == null) return NotFound();
-        return Ok(service);
+        var service = await _service.GetServiceByIdAsync(id);
+        return service == null ? NotFound(new { success = false, error = "Service not found" }) : Ok(new { success = true, data = service });
     }
 }
 
-/// <summary>
-/// Barbers Controller - Handles barber operations
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class BarbersController : ControllerBase
 {
-    private readonly IBarberService _barberService;
+    private readonly BarberService _service;
+    public BarbersController(BarberService service) => _service = service;
 
-    public BarbersController(IBarberService barberService)
+    [HttpGet]
+    public async Task<IActionResult> GetAll() => Ok(new { success = true, data = await _service.GetAllBarbersAsync() });
+
+    [HttpGet("available")]
+    public async Task<IActionResult> GetAvailable() => Ok(new { success = true, data = await _service.GetAvailableBarbersAsync() });
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
-        _barberService = barberService;
+        var barber = await _service.GetBarberByIdAsync(id);
+        return barber == null ? NotFound(new { success = false, error = "Barber not found" }) : Ok(new { success = true, data = barber });
+    }
+
+    [HttpPut("{id}/toggle")]
+    public async Task<IActionResult> ToggleAvailability(Guid id)
+    {
+        var barber = await _service.ToggleAvailabilityAsync(id);
+        return barber == null ? NotFound(new { success = false, error = "Barber not found" }) : Ok(new { success = true, data = barber });
+    }
+}
+
+[ApiController]
+[Route("api/[controller]")]
+public class BookingsController : ControllerBase
+{
+    private readonly BookingService _service;
+    public BookingsController(BookingService service) => _service = service;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll() => Ok(new { success = true, data = await _service.GetAllAppointmentsAsync() });
+
+    [HttpGet("customer/{email}")]
+    public async Task<IActionResult> GetByCustomer(string email) => Ok(new { success = true, data = await _service.GetAppointmentsByEmailAsync(email) });
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateBookingRequest request)
+    {
+        try
+        {
+            var appointment = await _service.CreateBookingAsync(request.ServiceId, request.BarberId, request.Date, request.Time, request.CustomerName, request.CustomerPhone, request.CustomerEmail, request.Notes);
+            return CreatedAtAction(nameof(GetAll), new { success = true, data = appointment, message = "Booking created successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, error = ex.Message });
+        }
+    }
+
+    [HttpPut("{id}/cancel")]
+    public async Task<IActionResult> Cancel(Guid id)
+    {
+        try
+        {
+            await _service.CancelBookingAsync(id);
+            return Ok(new { success = true, message = "Booking cancelled successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, error = ex.Message });
+        }
+    }
+}
+
+[ApiController]
+[Route("api/[controller]")]
+public class ContactController : ControllerBase
+{
+    private readonly ContactService _service;
+    public ContactController(ContactService service) => _service = service;
+
+    [HttpPost]
+    public async Task<IActionResult> Submit([FromBody] ContactRequest request)
+    {
+        var message = await _service.SubmitMessageAsync(request.Name, request.Email, request.Subject, request.Message);
+        return CreatedAtAction(nameof(GetAll), new { success = true, data = message, message = "Message sent successfully" });
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllBarbers()
-    {
-        var barbers = await _barberService.GetAllBarbersAsync();
-        return Ok(barbers);
-    }
-
-    [HttpGet("available")]
-    public async Task<IActionResult> GetAvailableBarbers()
-    {
-        var barbers = await _barberService.GetAvailableBarbersAsync();
-        return Ok(barbers);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetBarberById(Guid id)
-    {
-        var barber = await _barberService.GetBarberByIdAsync(id);
-        if (barber == null) return NotFound();
-        return Ok(barber);
-    }
+    public async Task<IActionResult> GetAll() => Ok(new { success = true, data = await _service.GetAllMessagesAsync() });
 }
+
+[ApiController]
+[Route("api/dashboard")]
+public class DashboardController : ControllerBase
+{
+    private readonly DashboardService _service;
+    public DashboardController(DashboardService service) => _service = service;
+
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats() => Ok(new { success = true, data = await _service.GetStatsAsync() });
+}
+
+public record CreateBookingRequest(Guid ServiceId, Guid BarberId, string Date, string Time, string CustomerName, string CustomerPhone, string CustomerEmail, string? Notes);
+public record ContactRequest(string Name, string Email, string Subject, string Message);

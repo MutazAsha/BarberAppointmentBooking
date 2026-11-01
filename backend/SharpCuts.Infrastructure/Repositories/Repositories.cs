@@ -1,127 +1,61 @@
-namespace SharpCuts.Infrastructure.Repositories;
-
 using Microsoft.EntityFrameworkCore;
 using SharpCuts.Domain.Entities;
 using SharpCuts.Domain.Interfaces;
 using SharpCuts.Infrastructure.Data;
 
-/// <summary>
-/// Generic Repository Implementation using Entity Framework Core
-/// </summary>
-public class Repository<T> : IRepository<T> where T : class
+namespace SharpCuts.Infrastructure.Repositories;
+
+public class ServiceRepository : IServiceRepository
 {
-    protected readonly AppDbContext _context;
-    protected readonly DbSet<T> _dbSet;
+    private readonly AppDbContext _context;
+    public ServiceRepository(AppDbContext context) => _context = context;
 
-    public Repository(AppDbContext context)
-    {
-        _context = context;
-        _dbSet = context.Set<T>();
-    }
-
-    public async Task<T?> GetByIdAsync(Guid id)
-        => await _dbSet.FindAsync(id);
-
-    public async Task<IEnumerable<T>> GetAllAsync()
-        => await _dbSet.ToListAsync();
-
-    public async Task<T> AddAsync(T entity)
-    {
-        await _dbSet.AddAsync(entity);
-        await _context.SaveChangesAsync();
-        return entity;
-    }
-
-    public async Task UpdateAsync(T entity)
-    {
-        _dbSet.Update(entity);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        var entity = await GetByIdAsync(id);
-        if (entity != null)
-        {
-            _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
-        }
-    }
+    public async Task<IEnumerable<Service>> GetAllAsync() => await _context.Services.ToListAsync();
+    public async Task<Service?> GetByIdAsync(Guid id) => await _context.Services.FindAsync(id);
+    public async Task<Service> AddAsync(Service entity) { await _context.Services.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
+    public async Task UpdateAsync(Service entity) { _context.Services.Update(entity); await _context.SaveChangesAsync(); }
+    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.Services.Remove(e); await _context.SaveChangesAsync(); return true; }
+    public async Task<IEnumerable<Service>> GetByCategoryAsync(string category) => await _context.Services.Where(s => s.Category == category && s.IsActive).ToListAsync();
+    public async Task<IEnumerable<Service>> GetActiveServicesAsync() => await _context.Services.Where(s => s.IsActive).ToListAsync();
 }
 
-public class ServiceRepository : Repository<Service>, IServiceRepository
+public class BarberRepository : IBarberRepository
 {
-    public ServiceRepository(AppDbContext context) : base(context) { }
+    private readonly AppDbContext _context;
+    public BarberRepository(AppDbContext context) => _context = context;
 
-    public async Task<IEnumerable<Service>> GetByCategoryAsync(string category)
-        => await _dbSet.Where(s => s.Category == category && s.IsActive).ToListAsync();
-
-    public async Task<IEnumerable<Service>> GetActiveServicesAsync()
-        => await _dbSet.Where(s => s.IsActive).ToListAsync();
+    public async Task<IEnumerable<Barber>> GetAllAsync() => await _context.Barbers.ToListAsync();
+    public async Task<Barber?> GetByIdAsync(Guid id) => await _context.Barbers.FindAsync(id);
+    public async Task<Barber> AddAsync(Barber entity) { await _context.Barbers.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
+    public async Task UpdateAsync(Barber entity) { _context.Barbers.Update(entity); await _context.SaveChangesAsync(); }
+    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.Barbers.Remove(e); await _context.SaveChangesAsync(); return true; }
+    public async Task<IEnumerable<Barber>> GetAvailableBarbersAsync() => await _context.Barbers.Where(b => b.Available).ToListAsync();
 }
 
-public class BarberRepository : Repository<Barber>, IBarberRepository
+public class AppointmentRepository : IAppointmentRepository
 {
-    public BarberRepository(AppDbContext context) : base(context) { }
+    private readonly AppDbContext _context;
+    public AppointmentRepository(AppDbContext context) => _context = context;
 
-    public async Task<IEnumerable<Barber>> GetAvailableBarbersAsync()
-        => await _dbSet.Where(b => b.IsAvailable).ToListAsync();
-
-    public async Task<Barber?> GetBySpecialtyAsync(string specialty)
-        => await _dbSet.FirstOrDefaultAsync(b => b.Specialty.Contains(specialty));
+    public async Task<IEnumerable<Appointment>> GetAllAsync() => await _context.Appointments.ToListAsync();
+    public async Task<Appointment?> GetByIdAsync(Guid id) => await _context.Appointments.FindAsync(id);
+    public async Task<Appointment> AddAsync(Appointment entity) { await _context.Appointments.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
+    public async Task UpdateAsync(Appointment entity) { _context.Appointments.Update(entity); await _context.SaveChangesAsync(); }
+    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.Appointments.Remove(e); await _context.SaveChangesAsync(); return true; }
+    public async Task<IEnumerable<Appointment>> GetByCustomerEmailAsync(string email) => await _context.Appointments.Where(a => a.CustomerEmail == email).ToListAsync();
+    public async Task<IEnumerable<Appointment>> GetByBarberIdAsync(Guid barberId) => await _context.Appointments.Where(a => a.BarberId == barberId).ToListAsync();
+    public async Task<IEnumerable<Appointment>> GetByDateAsync(string date) => await _context.Appointments.Where(a => a.Date == date).ToListAsync();
+    public async Task<bool> HasConflictAsync(Guid barberId, string date, string time) => await _context.Appointments.AnyAsync(a => a.BarberId == barberId && a.Date == date && a.Time == time && a.Status != "cancelled");
 }
 
-public class AppointmentRepository : Repository<Appointment>, IAppointmentRepository
+public class ContactRepository : IContactRepository
 {
-    public AppointmentRepository(AppDbContext context) : base(context) { }
+    private readonly AppDbContext _context;
+    public ContactRepository(AppDbContext context) => _context = context;
 
-    public async Task<IEnumerable<Appointment>> GetByCustomerEmailAsync(string email)
-        => await _dbSet
-            .Include(a => a.Service)
-            .Include(a => a.Barber)
-            .Where(a => a.CustomerEmail == email)
-            .OrderByDescending(a => a.AppointmentDate)
-            .ToListAsync();
-
-    public async Task<IEnumerable<Appointment>> GetByBarberIdAsync(Guid barberId)
-        => await _dbSet
-            .Include(a => a.Service)
-            .Where(a => a.BarberId == barberId)
-            .OrderBy(a => a.AppointmentDate)
-            .ToListAsync();
-
-    public async Task<IEnumerable<Appointment>> GetByDateRangeAsync(DateTime start, DateTime end)
-        => await _dbSet
-            .Include(a => a.Service)
-            .Include(a => a.Barber)
-            .Where(a => a.AppointmentDate >= start && a.AppointmentDate <= end)
-            .ToListAsync();
-
-    public async Task<bool> HasConflictAsync(Guid barberId, DateTime date, string time)
-        => await _dbSet.AnyAsync(a =>
-            a.BarberId == barberId &&
-            a.AppointmentDate == date &&
-            a.AppointmentTime == time &&
-            a.Status != AppointmentStatus.Cancelled);
-}
-
-public class TimeSlotRepository : Repository<TimeSlot>, ITimeSlotRepository
-{
-    public TimeSlotRepository(AppDbContext context) : base(context) { }
-
-    public async Task<IEnumerable<TimeSlot>> GetAvailableSlotsAsync(Guid barberId, DateTime date)
-        => await _dbSet
-            .Where(t => t.BarberId == barberId && t.Date == date && t.IsAvailable && !t.IsBooked)
-            .OrderBy(t => t.Time)
-            .ToListAsync();
-
-    public async Task BookSlotAsync(Guid slotId)
-    {
-        var slot = await GetByIdAsync(slotId);
-        if (slot != null)
-        {
-            slot.IsBooked = true;
-            await UpdateAsync(slot);
-        }
-    }
+    public async Task<IEnumerable<ContactMessage>> GetAllAsync() => await _context.ContactMessages.ToListAsync();
+    public async Task<ContactMessage?> GetByIdAsync(Guid id) => await _context.ContactMessages.FindAsync(id);
+    public async Task<ContactMessage> AddAsync(ContactMessage entity) { await _context.ContactMessages.AddAsync(entity); await _context.SaveChangesAsync(); return entity; }
+    public async Task UpdateAsync(ContactMessage entity) { _context.ContactMessages.Update(entity); await _context.SaveChangesAsync(); }
+    public async Task<bool> DeleteAsync(Guid id) { var e = await GetByIdAsync(id); if (e == null) return false; _context.ContactMessages.Remove(e); await _context.SaveChangesAsync(); return true; }
 }
