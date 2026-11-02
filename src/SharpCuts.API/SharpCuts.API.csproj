@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!--
+    ============================================
+    API LAYER (Presentation Layer)
+    ============================================
+    طبقة العرض - نقاط النهاية HTTP
+    
+    تحتوي على:
+    - Controllers (المتحكمات)
+    - Middleware (البرامج الوسيطة)
+    - Configuration (الإعدادات)
+    
+    تعتمد على Application و Infrastructure
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SharpCuts.API</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SharpCuts.Application\SharpCuts.Application.csproj" />
+    <ProjectReference Include="..\SharpCuts.Infrastructure\SharpCuts.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- JWT Authentication -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    
+    <!-- Swagger/OpenAPI -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    
+    <!-- CORS -->
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+    
+    <!-- Response Caching -->
+    <PackageReference Include="Microsoft.AspNetCore.ResponseCaching" Version="2.2.0" />
+  </ItemGroup>
+</Project>
