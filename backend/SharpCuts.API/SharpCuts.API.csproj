@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!--
+    ============================================
+    API LAYER - Web Endpoints
+    ============================================
+    Contains: Controllers, Middleware, Configuration
+    Dependencies: Application + Infrastructure layers
+    This is the entry point for HTTP requests.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SharpCuts.API</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SharpCuts.Application\SharpCuts.Application.csproj" />
+    <ProjectReference Include="..\SharpCuts.Infrastructure\SharpCuts.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- JWT Authentication -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    
+    <!-- Swagger/OpenAPI documentation -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    
+    <!-- CORS for React frontend -->
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+    
+    <!-- Response caching (performance) -->
+    <PackageReference Include="Microsoft.AspNetCore.ResponseCaching" Version="2.2.0" />
+  </ItemGroup>
+</Project>

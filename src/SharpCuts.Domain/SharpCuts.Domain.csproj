@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    ============================================
+    DOMAIN LAYER (Core Layer)
+    ============================================
+    الطبقة الأساسية - لا تعتمد على أي طبقة أخرى
+    
+    تحتوي على:
+    - Entities (الكيانات الأساسية)
+    - Enums (الأنواع المحددة)
+    - Value Objects (كائنات القيمة)
+    - Domain Events (أحداث النطاق)
+    - Exceptions (استثناءات النطاق)
+    
+    هذه الطبقة نقية (Pure C#) بدون أي اعتمادات خارجية
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SharpCuts.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>
